@@ -14,8 +14,8 @@ import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
-from .models import CarMake, CarModel, post_review
-from .restapis import get_request, analyze_review_sentiments
+from .models import CarMake, CarModel
+from .restapis import get_request, analyze_review_sentiments, post_review
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -78,12 +78,13 @@ def get_cars(request):
         initiate()
     car_models = CarModel.objects.select_related('car_make')
     cars = []
+    print(car_models)
     for car_model in car_models:
         cars.append({"CarModel": car_model.name, "CarMake": car_model.car_make.name})
     return JsonResponse({"CarModels": cars})
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
-def get_dealerships(request):
+def get_dealerships(request, state='All'):
     if state == "All":
         endpoint = "/fetchDealers"
     else:
@@ -100,7 +101,7 @@ def get_dealer_reviews(request,dealer_id):
             response = analyze_review_sentiments(review['review'])
             print(response)
             review['sentiment'] = response['sentiment']
-        return JsonResponse({"status": 200, reviews: reviews})
+        return JsonResponse({"status": 200, "reviews": reviews})
     else:
         return JsonResponse({"status": 400, "message": "Bad Request"})
 
